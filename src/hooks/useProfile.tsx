@@ -35,11 +35,13 @@ export function useProfile() {
     const fetchProfile = async () => {
       try {
         // Fetch profile with workspace details
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("*, workspaces(name)")
-          .eq("id", user.id)
-          .single();
+        const API_URL = import.meta.env.VITE_API_URL || '';
+        const session = localStorage.getItem('combinados_session');
+        const token = session ? JSON.parse(session).access_token : null;
+        const profileRes = await fetch(`${API_URL}/api/compound/profile/${user.id}`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        });
+        const { data: profileData, error: profileError } = await profileRes.json();
 
         if (profileError) throw profileError;
 

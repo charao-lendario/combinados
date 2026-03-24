@@ -36,26 +36,18 @@ export default function Reports() {
         queryFn: async () => {
             if (!user) return [];
 
-            let query = supabase
-                .from("agreements")
-                .select(`
-          *,
-          creator:creator_id (
-              workspace_id
-          ),
-          agreement_participants (
-            status,
-            rejection_reason,
-            profiles (
-              full_name
-            )
-          )
-        `)
-                .order("created_at", { ascending: false });
-
-            // RLS já cuida da filtragem de acesso (Admin vê tudo, outros veem apenas o que têm acesso)
-
-            const { data, error } = await query;
+            const API_URL = import.meta.env.VITE_API_URL || '';
+            const session = localStorage.getItem('combinados_session');
+            const token = session ? JSON.parse(session).access_token : null;
+            const res = await fetch(`${API_URL}/api/compound/reports/agreements`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({}),
+            });
+            const { data, error } = await res.json();
 
             if (error) {
                 console.error("Erro ao buscar relatórios:", error);

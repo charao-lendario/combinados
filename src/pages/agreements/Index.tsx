@@ -41,27 +41,24 @@ export default function AgreementsIndex() {
 
       const participationIds = participations?.map(p => p.agreement_id) || [];
 
-      // 2. Construir a query de combinados
-      let query = supabase
-        .from("agreements")
-        .select(`
-          *,
-          agreement_participants (
-            count
-          )
-        `)
-        .order("created_at", { ascending: false });
-
-      // Filtro: Sou criador OU Sou participante
-      if (participationIds.length > 0) {
-        // O formato do .or() com .in() pode ser chato, vamos tentar uma abordagem segura:
-        // creator_id.eq.ID,id.in.(ID1,ID2,...)
-        query = query.or(`creator_id.eq.${user.id},id.in.(${participationIds.join(',')})`);
-      } else {
-        query = query.eq('creator_id', user.id);
-      }
-
-      const { data, error } = await query;
+      // 2. Buscar combinados com contagem de participantes
+      const API_URL = import.meta.env.VITE_API_URL || '';
+      const session = localStorage.getItem('combinados_session');
+      const token = session ? JSON.parse(session).access_token : null;
+      const res = await fetch(`${API_URL}/api/compound/agreements/list`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          participationIds,
+          orderBy: 'created_at',
+          orderAsc: false,
+        }),
+      });
+      const { data, error } = await res.json();
 
       if (error) {
         console.error("Erro ao buscar combinados:", error);

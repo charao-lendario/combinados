@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { createClient } from "@supabase/supabase-js";
+import { supabase, createClient } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -274,8 +273,10 @@ export default function ManageTeam() {
                                             size="sm"
                                             onClick={async () => {
                                                 if (confirm("Tem certeza que deseja remover este colaborador?")) {
+                                                    const { data: { user: currentUser } } = await supabase.auth.getUser();
                                                     const { data: success, error } = await supabase.rpc('remove_user_from_workspace', {
-                                                        target_user_id: user.user_id
+                                                        target_user_id: user.user_id,
+                                                        executor_user_id: currentUser?.id
                                                     });
 
                                                     if (error || !success) {

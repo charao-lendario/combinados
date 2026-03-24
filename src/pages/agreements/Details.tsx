@@ -54,26 +54,13 @@ export default function AgreementDetails() {
     const { data: agreement, isLoading } = useQuery({
         queryKey: ["agreement", id],
         queryFn: async () => {
-            const { data, error } = await supabase
-                .from("agreements")
-                .select(`
-          *,
-          agreement_participants (
-            id,
-            user_id,
-            status,
-            profiles (
-              full_name,
-              position,
-              avatar_url
-            )
-          ),
-          checklist_items (*),
-          attachments (*)
-        `)
-                .eq("id", id)
-                .single();
-
+            const API_URL = import.meta.env.VITE_API_URL || '';
+            const session = localStorage.getItem('combinados_session');
+            const token = session ? JSON.parse(session).access_token : null;
+            const res = await fetch(`${API_URL}/api/compound/agreements/${id}/full`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            });
+            const { data, error } = await res.json();
             if (error) throw error;
             return data;
         },

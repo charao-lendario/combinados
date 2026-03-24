@@ -1,7 +1,18 @@
 import { createContext, useEffect, useState } from "react";
-import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+
+interface User {
+    id: string;
+    email?: string;
+    user_metadata?: Record<string, any>;
+}
+
+interface Session {
+    access_token: string;
+    refresh_token?: string;
+    user: User;
+}
 
 interface AuthContextType {
     user: User | null;
